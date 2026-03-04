@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Khảo sát ý kiến sinh viên - Trường ĐH Tài chính - Marketing</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap');
+  
+  * { margin:0; padding:0; box-sizing:border-box; }
+  
+  body {
+    min-height:100vh;
+    background: linear-gradient(160deg, #0f2027 0%, #203a43 40%, #2c5364 100%);
+    font-family: 'Be Vietnam Pro', 'Segoe UI', sans-serif;
+    padding: 24px 12px;
+  }
+
+  .toast {
+    position:fixed; top:24px; left:50%; transform:translateX(-50%) translateY(-80px);
+    padding:14px 32px; border-radius:14px; font-weight:600; font-size:15px; z-index:999;
+    transition: transform .4s cubic-bezier(.22,1,.36,1), opacity .4s;
+    opacity:0; pointer-events:none;
+  }
+  .toast.show { transform:translateX(-50%) translateY(0); opacity:1; }
+  .toast.success { background:#10b981; color:#fff; box-shadow:0 8px 32px rgba(16,185,129,0.35); }
+  .toast.error { background:#ef4444; color:#fff; box-shadow:0 8px 32px rgba(239,68,68,0.35); }
+
+  @keyframes slideUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+
+  .header { max-width:720px; margin:0 auto 28px; text-align:center; animation:slideUp .5s ease; }
+  .badge {
+    display:inline-block; padding:6px 20px; border-radius:20px;
+    background:rgba(56,189,248,0.12); border:1px solid rgba(56,189,248,0.25);
+    color:#7dd3fc; font-size:12px; font-weight:600; letter-spacing:1.5px;
+    text-transform:uppercase; margin-bottom:14px;
+  }
+  .header h1 { color:#f0f9ff; font-size:28px; font-weight:800; margin-bottom:8px; letter-spacing:-0.5px; }
+  .header p { color:#94a3b8; font-size:14px; line-height:1.6; }
+
+  .card {
+    max-width:720px; margin:0 auto 24px;
+    background:rgba(255,255,255,0.06); backdrop-filter:blur(16px);
+    border-radius:20px; border:1px solid rgba(255,255,255,0.1);
+    padding:32px 28px; box-shadow:0 20px 60px rgba(0,0,0,0.3);
+    animation:slideUp .6s ease;
+  }
+
+  .row { display:grid; gap:16px; margin-bottom:18px; }
+  .row-2 { grid-template-columns:1fr 1fr; }
+  .row-3 { grid-template-columns:1fr 1fr 1fr; }
+  @media(max-width:600px) { .row-2, .row-3 { grid-template-columns:1fr; } }
+
+  label { color:#cbd5e1; font-size:13px; font-weight:600; margin-bottom:6px; display:block; }
+  label .req { color:#f87171; }
+
+  select, input, textarea {
+    width:100%; padding:11px 14px; border-radius:10px;
+    background:rgba(15,23,42,0.6); border:1px solid rgba(148,163,184,0.25);
+    color:#f0f9ff; font-size:14px; font-family:inherit;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  select:focus, input:focus, textarea:focus {
+    border-color:#38bdf8; box-shadow:0 0 0 3px rgba(56,189,248,0.18); outline:none;
+  }
+  select:hover, input:hover, textarea:hover { border-color:#64748b; }
+  textarea { resize:vertical; line-height:1.6; }
+
+  select { cursor:pointer; }
+  select option { background:#1e293b; }
+  select.chu-de { color:#fef08a; }
+  select.chu-de option { color:#fef9c3; }
+  select.chi-tiet { color:#a5f3fc; }
+  select.chi-tiet option { color:#cffafe; }
+  select.lop-sv { color:#c4b5fd; }
+  select.lop-sv option { color:#ddd6fe; }
+  select.placeholder { color:#94a3b8; }
+
+  select:disabled { opacity:0.5; cursor:not-allowed; background:rgba(15,23,42,0.3); }
+
+  .btn {
+    width:100%; padding:14px; border-radius:12px; border:none;
+    color:#fff; font-size:16px; font-weight:700; cursor:pointer;
+    font-family:inherit; transition: transform .15s, box-shadow .15s;
+  }
+  .btn:active { transform:scale(0.98); }
+  .btn-primary {
+    background:linear-gradient(135deg, #0ea5e9, #2563eb);
+    box-shadow:0 8px 28px rgba(14,165,233,0.3);
+  }
+  .btn:disabled {
+    opacity:0.6; cursor:not-allowed; transform:none;
+  }
+
+  .spinner { display:inline-block; width:18px; height:18px; border:2px solid rgba(255,255,255,0.3);
+    border-top-color:#fff; border-radius:50%; animation:spin .6s linear infinite; vertical-align:middle; margin-right:8px; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+
+  .success-card {
+    text-align:center; padding:48px 28px;
+    max-width:720px; margin:0 auto;
+    background:rgba(255,255,255,0.06); backdrop-filter:blur(16px);
+    border-radius:20px; border:1px solid rgba(16,185,129,0.2);
+    box-shadow:0 20px 60px rgba(0,0,0,0.3);
+    animation:slideUp .5s ease;
+  }
+  .success-icon { font-size:64px; margin-bottom:16px; }
+  .success-card h2 { color:#34d399; font-size:22px; margin-bottom:10px; }
+  .success-card p { color:#94a3b8; font-size:15px; line-height:1.6; margin-bottom:24px; }
+  .btn-outline {
+    display:inline-block; padding:12px 32px; border-radius:12px;
+    border:1px solid rgba(56,189,248,0.3); background:rgba(56,189,248,0.1);
+    color:#7dd3fc; font-size:15px; font-weight:600; cursor:pointer;
+    font-family:inherit; transition: background .2s;
+  }
+  .btn-outline:hover { background:rgba(56,189,248,0.2); }
+
+  .setup-warning {
+    max-width:720px; margin:0 auto 20px; padding:16px 20px;
+    background:rgba(251,191,36,0.1); border:1px solid rgba(251,191,36,0.3);
+    border-radius:14px; color:#fbbf24; font-size:13px; line-height:1.7;
+    animation:slideUp .4s ease;
+  }
+  .setup-warning code {
+    background:rgba(0,0,0,0.3); padding:2px 8px; border-radius:4px;
+    font-size:12px; color:#fef08a;
+  }
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+<div class="header">
+  <div class="badge">Trường Đại học Tài chính - Marketing</div>
+  <h1>Khảo sát ý kiến sinh viên</h1>
+  <p>Góp ý để cùng xây dựng môi trường học tập tốt hơn</p>
+</div>
+
+<!-- ⚠️ SETUP: Replace GOOGLE_APPS_SCRIPT_URL below with your actual Apps Script URL -->
+<div class="setup-warning" id="setupWarning" style="display:none;">
+  ⚠️ Chưa cấu hình URL Google Apps Script. Vui lòng mở file HTML, tìm dòng <code>GOOGLE_APPS_SCRIPT_URL</code> và thay bằng URL thực tế.
+</div>
+
+<div class="card" id="formCard">
+  <div class="row row-2">
+    <div>
+      <label>Chủ đề góp ý <span class="req">*</span></label>
+      <select id="chuDe" class="placeholder" onchange="onTopicChange()">
+        <option value="">-- Chọn chủ đề --</option>
+      </select>
+    </div>
+    <div>
+      <label>Chi tiết <span class="req">*</span></label>
+      <select id="chiTiet" class="placeholder" disabled>
+        <option value="">-- Chọn chi tiết --</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="row">
+    <div>
+      <label>Nội dung góp ý <span class="req">*</span></label>
+      <textarea id="noiDung" rows="4" placeholder="Nhập nội dung góp ý chi tiết của bạn..."></textarea>
+    </div>
+  </div>
+
+  <div class="row row-2">
+    <div>
+      <label>MSSV <span class="req">*</span></label>
+      <input id="mssv" placeholder="VD: 2121001234">
+    </div>
+    <div>
+      <label>Họ tên SV <span class="req">*</span></label>
+      <input id="hoTen" placeholder="VD: Nguyễn Văn A">
+    </div>
+  </div>
+
+  <div class="row row-2">
+    <div>
+      <label>Lớp sinh viên <span class="req">*</span></label>
+      <select id="lopSV" class="placeholder" onchange="this.className=this.value?'lop-sv':'placeholder'">
+        <option value="">-- Chọn lớp --</option>
+        <option value="TH_25DKQ10">TH_25DKQ10</option>
+        <option value="TH_25DKQ11">TH_25DKQ11</option>
+        <option value="TH_25DKQ12">TH_25DKQ12</option>
+      </select>
+    </div>
+    <div>
+      <label>Ghi chú</label>
+      <input id="ghiChu" placeholder="Không bắt buộc">
+    </div>
+  </div>
+
+  <button class="btn btn-primary" id="submitBtn" onclick="submitForm()">
+    📨 Gửi ý kiến
+  </button>
+</div>
+
+<div class="success-card" id="successCard" style="display:none;">
+  <div class="success-icon">✅</div>
+  <h2>Gửi ý kiến thành công!</h2>
+  <p>Cảm ơn bạn đã đóng góp ý kiến.<br>Ý kiến của bạn đã được ghi nhận.</p>
+  <button class="btn-outline" onclick="resetForm()">📝 Gửi ý kiến khác</button>
+</div>
+
+<script>
+// ============================================================
+// ⚠️ QUAN TRỌNG: Thay URL bên dưới bằng URL Apps Script thực tế
+// ============================================================
+const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwViRUNIyP0r2BNOLDS7K-yU1YbKXYPrVsw9bQS47FBjxlIBjDCogAYJenL9xRtqdSr/exec";
+
+// ============================================================
+// 📌 Apps Script (phía server) cần có đoạn code tương tự:
+// ============================================================
+// function doPost(e) {
+//   var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+//   var data;
+//
+//   // Hỗ trợ cả 2 cách gửi: JSON (text/plain) và form (URLSearchParams)
+//   if (e.postData && e.postData.type === 'application/x-www-form-urlencoded') {
+//     data = e.parameter;
+//   } else {
+//     data = JSON.parse(e.postData.contents);
+//   }
+//
+//   sheet.appendRow([
+//     new Date(),
+//     data.chuDe,
+//     data.chiTiet,
+//     data.noiDung,
+//     data.mssv,
+//     data.hoTen,
+//     data.lopSV,
+//     data.ghiChu
+//   ]);
+//
+//   return ContentService.createTextOutput(
+//     JSON.stringify({ status: 'success' })
+//   ).setMimeType(ContentService.MimeType.JSON);
+// }
+// ============================================================
+
+// Topics data
+const TOPICS = {
+  "Công tác đào tạo": ["Lịch học","Tiến độ học tập","Đăng ký tín chỉ","Chương trình đào tạo","Lịch thi","Khác"],
+  "Giảng viên (ghi rõ tên GV và Mã lớp học phần)": ["Phương pháp giảng dạy","Nội dung giảng dạy","Khác"],
+  "Công tác sinh viên": ["Chính trị-Tư tưởng","Tuần sinh hoạt công dân","Rèn luyện sinh viên","Chế dộ chính sách-trợ cấp xã hội","Học bổng","Bảo hiểm y tế","Bảo hiểm tai nạn","Thẻ sinh viên","Ký túc xá","Khác"],
+  "Tài chính": ["Các vấn đề về học phí"],
+  "Trang thiết bị": ["Hội trường-phòng học-trang thiết bị học tập (ghi rõ phòng nào, cơ sở nào)","Nhà vệ sinh (ghi rõ phòng nào, cơ sở nào)","Khác"],
+  "An ninh sinh viên": ["An ninh trật tự của sinh viên"],
+  "Hoạt động phong trào": ["Hoạt động cấp khoa (ghi rõ khoa nào, CLB đội nhóm nào)","Đoàn trường","Hội sinh viên trường","Khác"],
+  "Nghiên cứu khoa học, Thư viện": ["Nghiên cứu khoa học-bài báo","Thư viện-sách-tài liệu","Khác"],
+  "Giải quyết hành chính": ["Thái độ phục vụ của nhân viên-viên chức trong trường","Chất lượng giấy tờ-biểu mẫu","Khác"],
+  "Các vấn đề khác": ["Các vấn đề khác"]
+};
+
+// Populate topics
+const chuDeEl = document.getElementById('chuDe');
+Object.keys(TOPICS).forEach(t => {
+  const opt = document.createElement('option');
+  opt.value = t; opt.textContent = t;
+  chuDeEl.appendChild(opt);
+});
+
+function onTopicChange() {
+  const val = chuDeEl.value;
+  const chiTietEl = document.getElementById('chiTiet');
+  
+  // Update class for color
+  chuDeEl.className = val ? 'chu-de' : 'placeholder';
+  
+  // Reset chi tiet
+  chiTietEl.innerHTML = '<option value="">-- Chọn chi tiết --</option>';
+  chiTietEl.className = 'placeholder';
+  
+  if (val && TOPICS[val]) {
+    chiTietEl.disabled = false;
+    TOPICS[val].forEach(d => {
+      const opt = document.createElement('option');
+      opt.value = d; opt.textContent = d;
+      chiTietEl.appendChild(opt);
+    });
+  } else {
+    chiTietEl.disabled = true;
+  }
+}
+
+document.getElementById('chiTiet').addEventListener('change', function() {
+  this.className = this.value ? 'chi-tiet' : 'placeholder';
+});
+
+// Check setup
+if (GOOGLE_APPS_SCRIPT_URL === "PASTE_YOUR_APPS_SCRIPT_URL_HERE") {
+  document.getElementById('setupWarning').style.display = 'block';
+}
+
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + type + ' show';
+  setTimeout(() => t.className = 'toast', 3000);
+}
+
+function submitForm() {
+  const data = {
+    chuDe: document.getElementById('chuDe').value,
+    chiTiet: document.getElementById('chiTiet').value,
+    noiDung: document.getElementById('noiDung').value.trim(),
+    mssv: document.getElementById('mssv').value.trim(),
+    hoTen: document.getElementById('hoTen').value.trim(),
+    lopSV: document.getElementById('lopSV').value,
+    ghiChu: document.getElementById('ghiChu').value.trim(),
+  };
+
+  if (!data.chuDe || !data.chiTiet || !data.noiDung || !data.mssv || !data.hoTen || !data.lopSV) {
+    showToast('Vui lòng điền đầy đủ thông tin bắt buộc!', 'error');
+    return;
+  }
+
+  if (GOOGLE_APPS_SCRIPT_URL === "PASTE_YOUR_APPS_SCRIPT_URL_HERE") {
+    showToast('Chưa cấu hình URL Apps Script!', 'error');
+    return;
+  }
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Đang gửi...';
+
+  // Cách 1: Thử gửi với CORS trước (nếu Apps Script hỗ trợ)
+  fetch(GOOGLE_APPS_SCRIPT_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify(data),
+    redirect: 'follow'
+  })
+  .then(res => {
+    // Apps Script trả về JSON nếu hỗ trợ CORS
+    if (res.ok || res.type === 'opaque') {
+      return res.json().catch(() => ({ status: 'success' }));
+    }
+    throw new Error('Request failed');
+  })
+  .then(result => {
+    document.getElementById('formCard').style.display = 'none';
+    document.getElementById('successCard').style.display = 'block';
+    showToast('Gửi ý kiến thành công!', 'success');
+  })
+  .catch(err => {
+    // Cách 2: Fallback dùng form submit (tương thích tốt hơn với Apps Script)
+    console.log('Retrying with form submit...');
+    fetch(GOOGLE_APPS_SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams(data).toString()
+    })
+    .then(() => {
+      document.getElementById('formCard').style.display = 'none';
+      document.getElementById('successCard').style.display = 'block';
+      showToast('Gửi ý kiến thành công!', 'success');
+    })
+    .catch(err2 => {
+      showToast('Lỗi khi gửi. Vui lòng thử lại!', 'error');
+      btn.disabled = false;
+      btn.innerHTML = '📨 Gửi ý kiến';
+    });
+  });
+}
+
+function resetForm() {
+  document.getElementById('chuDe').value = '';
+  document.getElementById('chuDe').className = 'placeholder';
+  onTopicChange();
+  document.getElementById('noiDung').value = '';
+  document.getElementById('mssv').value = '';
+  document.getElementById('hoTen').value = '';
+  document.getElementById('lopSV').value = '';
+  document.getElementById('lopSV').className = 'placeholder';
+  document.getElementById('ghiChu').value = '';
+  document.getElementById('submitBtn').disabled = false;
+  document.getElementById('submitBtn').innerHTML = '📨 Gửi ý kiến';
+  document.getElementById('successCard').style.display = 'none';
+  document.getElementById('formCard').style.display = 'block';
+}
+</script>
+</body>
+</html>
