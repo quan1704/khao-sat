@@ -210,37 +210,6 @@
 // ============================================================
 const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxM_oJUTQFJMglsrKMHza8wvMm8jen3sv71rUOZEeX5vHpKbYCD4LEzFnnkWYTMF46f/exec";
 
-// ============================================================
-// 📌 Apps Script (phía server) cần có đoạn code tương tự:
-// ============================================================
-// function doPost(e) {
-//   var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-//   var data;
-//
-//   // Hỗ trợ cả 2 cách gửi: JSON (text/plain) và form (URLSearchParams)
-//   if (e.postData && e.postData.type === 'application/x-www-form-urlencoded') {
-//     data = e.parameter;
-//   } else {
-//     data = JSON.parse(e.postData.contents);
-//   }
-//
-//   sheet.appendRow([
-//     new Date(),
-//     data.chuDe,
-//     data.chiTiet,
-//     data.noiDung,
-//     data.mssv,
-//     data.hoTen,
-//     data.lopSV,
-//     data.ghiChu
-//   ]);
-//
-//   return ContentService.createTextOutput(
-//     JSON.stringify({ status: 'success' })
-//   ).setMimeType(ContentService.MimeType.JSON);
-// }
-// ============================================================
-
 // Topics data
 const TOPICS = {
   "Công tác đào tạo": ["Lịch học","Tiến độ học tập","Đăng ký tín chỉ","Chương trình đào tạo","Lịch thi","Khác"],
@@ -327,45 +296,37 @@ function submitForm() {
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span> Đang gửi...';
 
-  // Cách 1: Thử gửi với CORS trước (nếu Apps Script hỗ trợ)
-  fetch(GOOGLE_APPS_SCRIPT_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain' },
-    body: JSON.stringify(data),
-    redirect: 'follow'
-  })
-  .then(res => {
-    // Apps Script trả về JSON nếu hỗ trợ CORS
-    if (res.ok || res.type === 'opaque') {
-      return res.json().catch(() => ({ status: 'success' }));
-    }
-    throw new Error('Request failed');
-  })
-  .then(result => {
+  // Gửi bằng form submit qua iframe ẩn (cách đáng tin cậy nhất với Apps Script)
+  var iframe = document.createElement('iframe');
+  iframe.name = 'hidden_iframe';
+  iframe.style.display = 'none';
+  document.body.appendChild(iframe);
+
+  var form = document.createElement('form');
+  form.method = 'POST';
+  form.action = GOOGLE_APPS_SCRIPT_URL;
+  form.target = 'hidden_iframe';
+
+  Object.entries(data).forEach(function([key, val]) {
+    var input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = key;
+    input.value = val;
+    form.appendChild(input);
+  });
+
+  document.body.appendChild(form);
+  form.submit();
+
+  // Hiển thị thành công sau khi submit
+  setTimeout(function() {
     document.getElementById('formCard').style.display = 'none';
     document.getElementById('successCard').style.display = 'block';
     showToast('Gửi ý kiến thành công!', 'success');
-  })
-  .catch(err => {
-    // Cách 2: Fallback dùng form submit (tương thích tốt hơn với Apps Script)
-    console.log('Retrying with form submit...');
-    fetch(GOOGLE_APPS_SCRIPT_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams(data).toString()
-    })
-    .then(() => {
-      document.getElementById('formCard').style.display = 'none';
-      document.getElementById('successCard').style.display = 'block';
-      showToast('Gửi ý kiến thành công!', 'success');
-    })
-    .catch(err2 => {
-      showToast('Lỗi khi gửi. Vui lòng thử lại!', 'error');
-      btn.disabled = false;
-      btn.innerHTML = '📨 Gửi ý kiến';
-    });
-  });
+    // Dọn dẹp
+    if (form.parentNode) form.parentNode.removeChild(form);
+    if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
+  }, 2000);
 }
 
 function resetForm() {
